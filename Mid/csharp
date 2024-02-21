@@ -1,0 +1,253 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+using Sys = Cosmos.System;
+
+namespace HorizonOs
+{
+    public class Kernel : Sys.Kernel
+    {
+        // Variable to store the current directory
+        private string currentDirectory = "/";
+        // Update the shell prompt to include the current directory name
+        private void PrintShellPrompt()
+        {
+            Console.Write(currentDirectory + " $ ");
+        }
+        private Dictionary<string, string> files; // Dictionary to store file contents
+        // Dictionary to store directory contents
+        private Dictionary<string, Dictionary<string, string>> directories;
+        protected override void BeforeRun()
+        {
+            Console.WriteLine("\n");
+            Console.WriteLine("--------++++++++++****\tHorizonX-OS\t++++++++++****--------");
+            Console.WriteLine("\n");
+            Console.WriteLine("HorizonX-OS booted successfully. Go ahead.");
+            Console.WriteLine("Input 'cmd' to see available command list");
+
+            files = new Dictionary<string, string>(); // Initialize the dictionary
+            directories = new Dictionary<string, Dictionary<string, string>>();
+        }
+
+        protected override void Run()
+        {
+            DateTime time = DateTime.Now;
+            DateTime date = DateTime.Today;
+
+            while (true)
+            {
+                // Print the shell prompt
+                PrintShellPrompt();
+
+                string cmd = Console.ReadLine();
+                switch (cmd)
+                {
+                    case "cmd":
+                        Console.WriteLine("To print anything: echo");
+                        Console.WriteLine("To show date: date");
+                        Console.WriteLine("To show time: time");
+                        Console.WriteLine("To create a file: createfile");
+                        Console.WriteLine("To write to the file: writefile");
+                        Console.WriteLine("To read from the file: readfile");
+                        Console.WriteLine("To append in the file: appendfile");
+                        Console.WriteLine("To update the file: updatefile");
+                        Console.WriteLine("To shutdown the OS: shutdown");
+                        Console.Write("\n");
+                        break;
+                    case "echo":
+                        Console.Write("Input your text: ");
+                        var input = Console.ReadLine();
+                        Console.Write("Text typed: ");
+                        Console.WriteLine(input);
+                        Console.Write("\n");
+                        break;
+                    case "date":
+                        Console.WriteLine("Date : " + date);
+                        Console.Write("\n");
+                        break;
+                    case "time":
+                        Console.WriteLine("Time : " + time);
+                        Console.Write("\n");
+                        break;
+                    case "shutdown":
+                        Cosmos.System.Power.Shutdown();
+                        Console.Write("\n");
+                        break;
+                    case "createfile":
+                        Console.WriteLine("Enter file name: ");
+                        string fileName = Console.ReadLine();
+                        Console.WriteLine("Enter file content: ");
+                        string fileContent = Console.ReadLine();
+                        CreateFile(fileName, fileContent);
+                        break;
+                    case "readfile":
+                        Console.WriteLine("Enter file name: ");
+                        string fileToRead = Console.ReadLine();
+                        ReadFile(fileToRead);
+                        break;
+
+                    case "appendfile":
+                        Console.WriteLine("Enter file name: ");
+                        string fileToAppend = Console.ReadLine();
+                        Console.WriteLine("Enter content to append: ");
+                        string contentToAppend = Console.ReadLine();
+                        CreateOrAppendToFile(fileToAppend, contentToAppend);
+                        break;
+
+                    case "updatefile":
+                        Console.WriteLine("Enter file name: ");
+                        string fileToUpdate = Console.ReadLine();
+                        Console.WriteLine("Enter new content: ");
+                        string newContent = Console.ReadLine();
+                        UpdateFile(fileToUpdate, newContent);
+                        break;
+
+                    case "deletefile":
+                        Console.WriteLine("Enter file name to delete: ");
+                        string fileToDelete = Console.ReadLine();
+                        DeleteFile(fileToDelete);
+                        break;
+
+                    case "createdir":
+                        Console.WriteLine("Enter directory name to create: ");
+                        string directoryToCreate = Console.ReadLine();
+                        CreateDirectory(directoryToCreate);
+                        break;
+
+                    case "deletedir":
+                        Console.WriteLine("Enter directory name to delete: ");
+                        string directoryToDelete = Console.ReadLine();
+                        DeleteDirectory(directoryToDelete);
+                        break;
+
+                    case "cd":
+                        // Read the directory path from user input
+                        Console.WriteLine("Enter directory path: ");
+                        string newDirectory = Console.ReadLine();
+
+                        // Call the method to change the directory
+                        ChangeDirectory(newDirectory);
+                        break;
+                    default:
+                        Console.WriteLine("Invalid command");
+                        break;
+                }
+            }
+        }
+
+        // Function to create a file
+        private void CreateFile(string fileName, string content)
+        {
+            if (!files.ContainsKey(fileName))
+            {
+                files.Add(fileName, content);
+                Console.WriteLine("File created: " + fileName);
+            }
+            else
+            {
+                Console.WriteLine("File already exists: " + fileName);
+            }
+        }
+
+
+        // Function to read a file
+        private void ReadFile(string fileName)
+        {
+            if (files.ContainsKey(fileName))
+            {
+                Console.WriteLine("File content: " + files[fileName]);
+            }
+            else
+            {
+                Console.WriteLine("File not found: " + fileName);
+            }
+        }
+
+        // Function to create or append to a file
+        private void CreateOrAppendToFile(string fileName, string content)
+        {
+            if (!files.ContainsKey(fileName))
+            {
+                // If the file doesn't exist, create it
+                files.Add(fileName, content);
+                Console.WriteLine("File created: " + fileName);
+            }
+            else
+            {
+                // If the file already exists, append the content to it
+                files[fileName] += Environment.NewLine + content;
+                Console.WriteLine("Content appended to file: " + fileName);
+            }
+        }
+
+        // Function to update file content
+        private void UpdateFile(string fileName, string content)
+        {
+            if (files.ContainsKey(fileName))
+            {
+                // Update the content of the existing file
+                files[fileName] = content;
+                Console.WriteLine("File updated: " + fileName);
+            }
+            else
+            {
+                Console.WriteLine("File not found: " + fileName);
+            }
+        }
+
+        // Function to delete a file
+        private void DeleteFile(string fileName)
+        {
+            if (files.ContainsKey(fileName))
+            {
+                // Remove the file from the dictionary
+                files.Remove(fileName);
+                Console.WriteLine("File deleted: " + fileName);
+            }
+            else
+            {
+                Console.WriteLine("File not found: " + fileName);
+            }
+        }
+
+        // Function to create a directory
+        private void CreateDirectory(string directoryName)
+        {
+            if (!directories.ContainsKey(directoryName))
+            {
+                // Create a new directory entry
+                directories.Add(directoryName, new Dictionary<string, string>());
+                Console.WriteLine("Directory created: " + directoryName);
+            }
+            else
+            {
+                Console.WriteLine("Directory already exists: " + directoryName);
+            }
+        }
+
+        // Function to delete a directory
+        private void DeleteDirectory(string directoryName)
+        {
+            if (directories.ContainsKey(directoryName))
+            {
+                // Remove the directory entry from the dictionary
+                directories.Remove(directoryName);
+                Console.WriteLine("Directory deleted: " + directoryName);
+            }
+            else
+            {
+                Console.WriteLine("Directory not found: " + directoryName);
+            }
+        }
+
+        // Function to change the current directory
+        private void ChangeDirectory(string newDirectory)
+        {
+            // Validate the new directory path (optional)
+            // (Add your validation logic here, e.g., check if the directory exists)
+
+            // Update the current directory
+            currentDirectory = newDirectory;
+        }
+    }
+}
